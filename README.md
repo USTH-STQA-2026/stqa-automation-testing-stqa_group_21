@@ -25,7 +25,7 @@ Sử dụng **Playwright + Python** để kiểm thử hệ thống Mượn sác
 | --- | ---- | --------- | ----------- |
 | 1   |      |           | Nhóm trưởng |
 | 2   | 23BA14057 | Hoàng Lê Anh Đức | Thành viên  |
-| 3   |      |           | Thành viên  |
+| 3   | 23BA14005 | Lê Đức Anh       | Thành viên  |
 | 4   |      |           | Thành viên  |
 
 ---
