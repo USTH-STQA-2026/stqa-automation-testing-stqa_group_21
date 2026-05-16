@@ -13,20 +13,19 @@ Sử dụng **Playwright + Python** để kiểm thử hệ thống Mượn sác
 
 ## 👥 Thông tin nhóm / Team Information
 
-> **⚠️ Sinh viên: Điền thông tin nhóm vào bảng dưới đây trước khi nộp bài.**
+|              | Thông tin        |
+| ------------ | ---------------- |
+| **Tên nhóm** | Nhóm 21          |
+| **Lớp**      | STQA — USTH      |
+| **Học kỳ**   | HK2 2025-2026    |
 
-|              | Thông tin                    |
-| ------------ | ---------------------------- |
-| **Tên nhóm** | `<!-- VD: Nhóm 1 -->`        |
-| **Lớp**      | `<!-- VD: SE001.P11 -->`     |
-| **Học kỳ**   | `<!-- VD: HK2 2025-2026 -->` |
-
-| #   | MSSV | Họ và tên | Vai trò     |
-| --- | ---- | --------- | ----------- |
-| 1   |      |           | Nhóm trưởng |
-| 2   | 23BA14057 | Hoàng Lê Anh Đức | Thành viên  |
-| 3   | 23BA14005 | Lê Đức Anh       | Thành viên  |
-| 4   |      |           | Thành viên  |
+| #   | MSSV      | Họ và tên         | Vai trò     |
+| --- | --------- | ----------------- | ----------- |
+| 1   | 23BA14068 | Nguyễn Tiến Dũng  | Nhóm trưởng |
+| 2   | 23BA14057 | Hoàng Lê Anh Đức  | Thành viên  |
+| 3   | 23BA14005 | Lê Đức Anh        | Thành viên  |
+| 4   | 23BA14105 | Nguyễn Minh Hiếu  | Thành viên  |
+| 5   | 23BA14305 | Nguyễn Cao Tuấn   | Thành viên  |
 
 ---
 
