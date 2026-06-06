@@ -178,6 +178,14 @@ def test_borrow_book_suspended_member(page, test_config):
     borrow_btn = page.locator('flt-semantics[role="button"]:has-text("Mượn sách này")').first
     borrow_btn.click()
 
+    # Chờ dialog xác nhận xuất hiện
+    page.wait_for_timeout(2000)
+    enable_flutter_semantics(page)
+
+    # Click nút "Mượn" trong dialog xác nhận
+    confirm_buttons = page.locator('flt-semantics[role="button"]:has-text("Mượn")')
+    confirm_buttons.last.click()
+
     # Smart Wait: Chờ thông báo từ chối
     page.wait_for_timeout(3000)
     enable_flutter_semantics(page)
@@ -216,6 +224,14 @@ def test_borrow_book_expired_member(page, test_config):
 
     borrow_btn = page.locator('flt-semantics[role="button"]:has-text("Mượn sách này")').first
     borrow_btn.click()
+
+    # Chờ dialog xác nhận xuất hiện
+    page.wait_for_timeout(2000)
+    enable_flutter_semantics(page)
+
+    # Click nút "Mượn" trong dialog xác nhận
+    confirm_buttons = page.locator('flt-semantics[role="button"]:has-text("Mượn")')
+    confirm_buttons.last.click()
 
     # Smart Wait: Chờ thông báo từ chối
     page.wait_for_timeout(3000)
