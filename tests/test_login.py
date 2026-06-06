@@ -49,6 +49,65 @@ def test_login_success(page, test_config):
         f"(Đăng nhập không thành công: không tìm thấy tên hoặc nút Đăng xuất)"
 
 
+@pytest.mark.parametrize("email,password,expected_error", [
+    ("ba.nguyen@email.com", "wrongpassword", "Mật khẩu không đúng"),
+    ("", "", "Vui lòng nhập email và mật khẩu"),
+    ("nobody@test.com", "anything", "Không tìm thấy thành viên"),
+])
+def test_login_fail_parametrize(page, test_config, email, password, expected_error):
+    """B2: Data-driven login failure test (*Kiểm thử đăng nhập thất bại — nhiều bộ dữ liệu*)
+
+    📖 Data-Driven Testing (Ch.3 §3.3.2):
+        Dùng @pytest.mark.parametrize để chạy cùng kịch bản với nhiều bộ dữ liệu khác nhau.
+    """
+    # Arrange: Truy cập trang đăng nhập
+    page.goto(test_config["base_url"], wait_until="networkidle", timeout=60000)
+    enable_flutter_semantics(page)
+
+    # Act: Nhập dữ liệu và đăng nhập
+    if email:
+        flutter_fill(page, "Email", email)
+    if password:
+        flutter_fill(page, "Mật khẩu", password)
+    flutter_click_button(page, "Đăng nhập")
+
+    # Smart Wait: Chờ thông báo lỗi
+    wait_for_flutter(page, text=expected_error)
+
+    # Assert: Kiểm tra thông báo lỗi đúng
+    sem_text = " ".join(page.locator("flt-semantics").all_text_contents())
+    assert expected_error in sem_text, \
+        f"Expected error '{expected_error}' not found in: {sem_text[:200]}"
+
+
+def test_login_fail_nonexistent_email(page, test_config):
+    """TC-13 (B1): Login fail – email không tồn tại (*Non-existent email*)
+
+    📖 RIPR Model:
+        [R] Truy cập trang đăng nhập
+        [I] Nhập email không tồn tại → kích hoạt nhánh "Không tìm thấy thành viên"
+        [P] Lỗi lan truyền ra thông báo trên UI
+        [R✓] Assert kiểm tra thông báo lỗi
+    """
+    # [R] Reachability
+    page.goto(test_config["base_url"], wait_until="networkidle", timeout=60000)
+    enable_flutter_semantics(page)
+
+    # [I] Infection: Nhập email không tồn tại
+    flutter_fill(page, "Email", "nobody@test.com")
+    flutter_fill(page, "Mật khẩu", "anything")
+    flutter_click_button(page, "Đăng nhập")
+
+    # [P] Propagation
+    wait_for_flutter(page, text="Không tìm thấy thành viên")
+    page.screenshot(path=os.path.join(SCREENSHOT_DIR, "login_fail_nonexistent_email.png"))
+
+    # [R✓] Revealability
+    sem_text = " ".join(page.locator("flt-semantics").all_text_contents())
+    assert "Không tìm thấy thành viên" in sem_text, \
+        f"Expected error 'Không tìm thấy thành viên' not found in: {sem_text[:200]}"
+
+
 def test_login_fail_wrong_password(page, test_config):
     """TC-02: Login fail – wrong password (*Đăng nhập thất bại – sai mật khẩu*)
 

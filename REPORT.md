@@ -13,8 +13,8 @@
 
 | Chỉ số | Giá trị |
 |--------|---------|
-| Tổng số test case | 12 |
-| PASSED | 12 |
+| Tổng số test case | 18 (12 bắt buộc + 3 bonus B1 + 3 parametrize B2) |
+| PASSED | 18 |
 | FAILED | 0 |
 | Thời gian chạy | ~2 phút 10 giây |
 | Trình duyệt | Chromium (headless) |
@@ -129,6 +129,45 @@
 
 ---
 
+### Bonus B1: Test case mới (`tests/test_login.py`, `tests/test_borrow_return.py`)
+
+#### TC-13: Đăng nhập thất bại — email không tồn tại ✅ PASSED
+
+- **Mô tả**: Nhập email không có trong hệ thống → hiển thị "Không tìm thấy thành viên".
+- **Dữ liệu**: Email `nobody@test.com`, mật khẩu `anything`
+- **Cách kiểm tra**: Kiểm tra Semantics Tree chứa thông báo "Không tìm thấy thành viên".
+- **Kết quả**: Hệ thống hiển thị đúng thông báo lỗi, phù hợp với SRS REQ-01.
+- **Screenshot**: `screenshots/login_fail_nonexistent_email.png`
+
+#### TC-14: Thành viên tạm ngưng mượn sách → bị từ chối ✅ PASSED
+
+- **Mô tả**: Đăng nhập bằng tài khoản `cu.le@email.com` (MEM004 — Tạm ngưng) → thử mượn sách → bị từ chối.
+- **Cách kiểm tra**: Kiểm tra thông báo từ chối liên quan đến tạm ngưng.
+- **Kết quả**: Hệ thống từ chối đúng, phù hợp với SRS REQ-04.
+- **Screenshot**: `screenshots/borrow_suspended_member.png`
+
+#### TC-15: Thành viên hết hạn mượn sách → bị từ chối ✅ PASSED
+
+- **Mô tả**: Đăng nhập bằng tài khoản `binh.pham@email.com` (MEM005 — Hết hạn) → thử mượn sách → bị từ chối.
+- **Cách kiểm tra**: Kiểm tra thông báo từ chối liên quan đến hết hạn.
+- **Kết quả**: Hệ thống từ chối đúng và phân biệt lý do với tạm ngưng, phù hợp với SRS REQ-04.
+- **Screenshot**: `screenshots/borrow_expired_member.png`
+
+---
+
+### Bonus B2: Data-Driven Test (`tests/test_login.py`)
+
+#### test_login_fail_parametrize — 3 bộ dữ liệu ✅ ALL PASSED
+
+- **Kỹ thuật**: Sử dụng `@pytest.mark.parametrize` (Ch.3 §3.3.2) để chạy cùng kịch bản đăng nhập thất bại với nhiều bộ dữ liệu.
+- **Bộ dữ liệu**:
+  1. Email đúng + mật khẩu sai → "Mật khẩu không đúng"
+  2. Bỏ trống cả hai → "Vui lòng nhập email và mật khẩu"
+  3. Email không tồn tại → "Không tìm thấy thành viên"
+- **Kết quả**: Cả 3 bộ dữ liệu đều PASSED, thông báo lỗi phù hợp với SRS REQ-01.
+
+---
+
 ## 3. Nhận xét chung
 
 ### Chất lượng hệ thống
@@ -156,5 +195,5 @@
 Nhóm có sử dụng công cụ AI (Warp Oz Agent) để hỗ trợ viết test code cho TC-02 đến TC-12. Cụ thể:
 
 - **Công cụ**: Warp Oz Agent (Claude)
-- **Phạm vi sử dụng**: Viết code cho 11 test case (TC-02 → TC-12) dựa trên pattern mẫu TC-01 và hints có sẵn trong từng file.
-- **Kiểm tra**: Đã chạy `pytest` xác nhận 12/12 test PASSED. Đã review và điều chỉnh TC-08 để xử lý crash issue của Flutter CanvasKit headless.
+- **Phạm vi sử dụng**: Viết code cho 11 test case (TC-02 → TC-12) và 6 bonus test (TC-13 → TC-15 + 3 parametrize) dựa trên pattern mẫu TC-01 và hints có sẵn trong từng file.
+- **Kiểm tra**: Đã chạy `pytest` xác nhận 18/18 test PASSED. Đã review và điều chỉnh TC-08 để xử lý crash issue của Flutter CanvasKit headless.

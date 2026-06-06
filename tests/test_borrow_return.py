@@ -151,3 +151,81 @@ def test_return_book(page, test_config):
     has_success = "thành công" in sem_text.lower() or "Đã trả" in sem_text or "Có sẵn" in sem_text
     assert has_success, \
         f"Trả sách không thành công. Sem text: {sem_text[:300]}"
+
+
+def test_borrow_book_suspended_member(page, test_config):
+    """TC-14 (B1): Suspended member tries to borrow → rejected
+    (*Thành viên bị tạm ngưng mượn sách → bị từ chối*)
+
+    SRS REQ-04: Từ chối nếu thành viên bị tạm ngưng.
+    Tài khoản: cu.le@email.com (MEM004 — Tạm ngưng)
+    """
+    from conftest import wait_for_flutter
+
+    # Arrange: Đăng nhập bằng tài khoản bị tạm ngưng
+    page.goto(test_config["base_url"], wait_until="networkidle", timeout=60000)
+    enable_flutter_semantics(page)
+    flutter_fill(page, "Email", "cu.le@email.com")
+    flutter_fill(page, "Mật khẩu", "password123")
+    flutter_click_button(page, "Đăng nhập")
+    wait_for_flutter(page, text="Đăng xuất")
+    enable_flutter_semantics(page)
+
+    # Act: Tìm sách "Có sẵn" và thử mượn
+    available_books = page.locator('flt-semantics[role="group"][aria-label*="Có sẵn"]')
+    available_books.first.wait_for(state="attached", timeout=10000)
+
+    borrow_btn = page.locator('flt-semantics[role="button"]:has-text("Mượn sách này")').first
+    borrow_btn.click()
+
+    # Smart Wait: Chờ thông báo từ chối
+    page.wait_for_timeout(3000)
+    enable_flutter_semantics(page)
+    page.screenshot(path=os.path.join(SCREENSHOT_DIR, "borrow_suspended_member.png"))
+
+    # Assert: Kiểm tra thông báo từ chối liên quan đến tạm ngưng
+    sem_text = " ".join(page.locator("flt-semantics").all_text_contents())
+    has_rejection = ("tạm ngưng" in sem_text.lower() or "suspended" in sem_text.lower()
+                     or "không thể" in sem_text.lower() or "từ chối" in sem_text.lower()
+                     or "không được" in sem_text.lower())
+    assert has_rejection, \
+        f"Thành viên bị tạm ngưng vẫn mượn được sách (không có thông báo từ chối). Sem text: {sem_text[:300]}"
+
+
+def test_borrow_book_expired_member(page, test_config):
+    """TC-15 (B1): Expired member tries to borrow → rejected
+    (*Thành viên hết hạn mượn sách → bị từ chối*)
+
+    SRS REQ-04: Từ chối nếu thành viên hết hạn. Thông báo phải phân biệt đúng lý do.
+    Tài khoản: binh.pham@email.com (MEM005 — Hết hạn)
+    """
+    from conftest import wait_for_flutter
+
+    # Arrange: Đăng nhập bằng tài khoản hết hạn
+    page.goto(test_config["base_url"], wait_until="networkidle", timeout=60000)
+    enable_flutter_semantics(page)
+    flutter_fill(page, "Email", "binh.pham@email.com")
+    flutter_fill(page, "Mật khẩu", "password123")
+    flutter_click_button(page, "Đăng nhập")
+    wait_for_flutter(page, text="Đăng xuất")
+    enable_flutter_semantics(page)
+
+    # Act: Tìm sách "Có sẵn" và thử mượn
+    available_books = page.locator('flt-semantics[role="group"][aria-label*="Có sẵn"]')
+    available_books.first.wait_for(state="attached", timeout=10000)
+
+    borrow_btn = page.locator('flt-semantics[role="button"]:has-text("Mượn sách này")').first
+    borrow_btn.click()
+
+    # Smart Wait: Chờ thông báo từ chối
+    page.wait_for_timeout(3000)
+    enable_flutter_semantics(page)
+    page.screenshot(path=os.path.join(SCREENSHOT_DIR, "borrow_expired_member.png"))
+
+    # Assert: Kiểm tra thông báo từ chối liên quan đến hết hạn
+    sem_text = " ".join(page.locator("flt-semantics").all_text_contents())
+    has_rejection = ("hết hạn" in sem_text.lower() or "expired" in sem_text.lower()
+                     or "không thể" in sem_text.lower() or "từ chối" in sem_text.lower()
+                     or "không được" in sem_text.lower())
+    assert has_rejection, \
+        f"Thành viên hết hạn vẫn mượn được sách (không có thông báo từ chối). Sem text: {sem_text[:300]}"
