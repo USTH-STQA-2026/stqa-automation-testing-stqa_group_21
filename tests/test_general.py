@@ -27,38 +27,47 @@ from conftest import (
 def test_logout(page, test_config):
     """TC-11: Logout success (*Đăng xuất thành công*)
 
-    🔴 NOT COMPLETED (*CHƯA HOÀN THÀNH*)
-
-    Description (*Mô tả*):
-        Log in → click Logout → verify page returns to login screen.
-        (*Đăng nhập → click Đăng xuất → kiểm tra quay về trang đăng nhập.*)
-
-    Suggested steps (*Gợi ý*):
-        1. login(page, test_config)
-        2. Find "Đăng xuất" button and click (*Tìm nút "Đăng xuất" và click*)
-        3. Wait 3s, re-enable semantics (*Đợi 3s, bật lại semantics*)
-        4. Assert: "Đăng nhập" button or Email input exists
-           (*Assert: có nút "Đăng nhập" hoặc ô input Email*)
+    Mô tả: Đăng nhập → click Đăng xuất → kiểm tra quay về trang đăng nhập.
     """
-    # TODO: Students implement here (Sinh viên viết code ở đây)
-    pytest.skip("Not implemented — student must complete (Chưa hoàn thành)")
+    # Arrange: Đăng nhập
+    login(page, test_config)
+
+    # Act: Click nút "Đăng xuất"
+    logout_btn = page.locator('flt-semantics[role="button"]:has-text("Đăng xuất")')
+    logout_btn.click()
+
+    # Smart Wait: Chờ quay về trang đăng nhập
+    page.wait_for_timeout(3000)
+    enable_flutter_semantics(page)
+    page.screenshot(path=os.path.join(SCREENSHOT_DIR, "logout.png"))
+
+    # Assert: Kiểm tra đã quay về trang đăng nhập (có nút "Đăng nhập" hoặc ô Email)
+    sem_text = " ".join(page.locator("flt-semantics").all_text_contents())
+    has_login_page = "Đăng nhập" in sem_text or "Email" in sem_text or "Login" in sem_text
+    has_email_input = page.locator('input[aria-label="Email"]').count() > 0
+    assert has_login_page or has_email_input, \
+        f"Không quay về trang đăng nhập sau khi đăng xuất. Sem text: {sem_text[:300]}"
 
 
 def test_switch_language_to_english(page, test_config):
     """TC-12: Switch language to English (*Chuyển ngôn ngữ sang tiếng Anh*)
 
-    🔴 NOT COMPLETED (*CHƯA HOÀN THÀNH*)
-
-    Description (*Mô tả*):
-        Log in → click "EN" button → verify UI switches to English.
-        (*Đăng nhập → click nút "EN" → kiểm tra giao diện chuyển sang tiếng Anh.*)
-
-    Suggested steps (*Gợi ý*):
-        1. login(page, test_config)
-        2. Find "EN" button and click (*Tìm nút "EN" và click*)
-        3. Wait 2s, re-enable semantics (*Đợi 2s, bật lại semantics*)
-        4. Get sem_text = " ".join(page.locator("flt-semantics").all_text_contents())
-        5. Assert: "Logout" or "Borrow" or "Library" in sem_text
+    Mô tả: Đăng nhập → click nút "EN" → kiểm tra giao diện chuyển sang tiếng Anh.
     """
-    # TODO: Students implement here (Sinh viên viết code ở đây)
-    pytest.skip("Not implemented — student must complete (Chưa hoàn thành)")
+    # Arrange: Đăng nhập
+    login(page, test_config)
+
+    # Act: Click nút "EN" để chuyển ngôn ngữ
+    en_btn = page.locator('flt-semantics[role="button"]:has-text("EN")')
+    en_btn.click()
+
+    # Smart Wait: Chờ giao diện chuyển ngôn ngữ
+    page.wait_for_timeout(2000)
+    enable_flutter_semantics(page)
+    page.screenshot(path=os.path.join(SCREENSHOT_DIR, "switch_language_en.png"))
+
+    # Assert: Kiểm tra giao diện hiển thị tiếng Anh
+    sem_text = " ".join(page.locator("flt-semantics").all_text_contents())
+    has_english = "Logout" in sem_text or "Borrow" in sem_text or "Library" in sem_text or "Search" in sem_text
+    assert has_english, \
+        f"Giao diện không chuyển sang tiếng Anh sau khi click 'EN'. Sem text: {sem_text[:300]}"
