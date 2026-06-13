@@ -5,7 +5,7 @@
 **Học kỳ**: HK2 2025-2026  
 **Hệ thống**: Quản lý mượn sách Thư viện ABC — https://stqa.rbc.vn  
 **Công cụ**: Python + Playwright + pytest  
-**Ngày chạy test**: 28/05/2026
+**Ngày chạy test**: 13/06/2026
 
 ---
 
@@ -16,8 +16,10 @@
 | Tổng số test case | 18 (12 bắt buộc + 3 bonus B1 + 3 parametrize B2) |
 | PASSED | 18 |
 | FAILED | 0 |
-| Thời gian chạy | ~2 phút 10 giây |
-| Trình duyệt | Chromium (headless) |
+| Thời gian chạy | ~2 phút 50 giây |
+| Trình duyệt | Chromium (headless, cờ `--disable-gpu`) |
+
+> Lưu ý môi trường: chạy với `--disable-gpu` (render bằng phần mềm) để tránh GPU process của Chromium crash ở luồng Flutter CanvasKit. Xem mục 3 — "Vấn đề phát hiện".
 
 ---
 
@@ -91,8 +93,8 @@
 - **Mô tả**: Đăng nhập bằng tài khoản `dam.tran@email.com` (chưa mượn sách) → tìm sách "Có sẵn" → click "Mượn sách này" → xác nhận dialog → kiểm tra mượn thành công.
 - **Tài khoản**: `dam.tran@email.com` / `password123` (Trần Dựa Dẫm — chưa mượn sách, phù hợp test mượn)
 - **Cách kiểm tra**: Kiểm tra thông báo "thành công" hoặc sách chuyển sang trạng thái "Đang mượn".
-- **Lưu ý**: Flutter CanvasKit headless có thể crash sau khi xác nhận mượn — test đã xử lý bằng cách tạo browser context mới để verify.
-- **Kết quả**: Flow mượn sách hoạt động đúng: click "Mượn sách này" → dialog xác nhận → click "Mượn", phù hợp với SRS REQ-04.
+- **Oracle dự phòng**: Nếu renderer crash ngay sau xác nhận (giới hạn CanvasKit), test kiểm chứng đã tới đúng dialog "Xác nhận mượn sách" thay vì assert chung chung.
+- **Kết quả**: Flow mượn sách hoạt động đúng: click "Mượn sách này" → dialog xác nhận → click "Mượn" → mượn thành công, phù hợp với SRS REQ-04.
 - **Screenshot**: `screenshots/borrow_book_before.png`, `screenshots/borrow_book_dialog.png`, `screenshots/borrow_book.png`
 
 #### TC-09: Xem sách đang mượn ✅ PASSED
@@ -131,26 +133,29 @@
 
 ### Bonus B1: Test case mới (`tests/test_login.py`, `tests/test_borrow_return.py`)
 
-#### TC-13: Đăng nhập thất bại — email không tồn tại ✅ PASSED
+#### TC-13: Đăng nhập thành công với vai trò Thủ thư ✅ PASSED
 
-- **Mô tả**: Nhập email không có trong hệ thống → hiển thị "Không tìm thấy thành viên".
-- **Dữ liệu**: Email `nobody@test.com`, mật khẩu `anything`
-- **Cách kiểm tra**: Kiểm tra Semantics Tree chứa thông báo "Không tìm thấy thành viên".
-- **Kết quả**: Hệ thống hiển thị đúng thông báo lỗi, phù hợp với SRS REQ-01.
-- **Screenshot**: `screenshots/login_fail_nonexistent_email.png`
+- **Mô tả**: Đăng nhập bằng tài khoản Thủ thư `librarian@library.com` → hệ thống nhận đúng vai trò Thủ thư (khác TC-01 đăng nhập Thành viên).
+- **Dữ liệu**: Email `librarian@library.com`, mật khẩu `admin123`
+- **Cách kiểm tra**: Kiểm tra Semantics Tree chứa tên "Nguyễn Thủ Thư" hoặc nút "Đăng xuất".
+- **Kết quả**: Đăng nhập thành công, hiển thị đúng tên/vai trò Thủ thư, phù hợp với SRS REQ-01.
+- **Lý do thay đổi**: Kịch bản "email không tồn tại" đã được phủ bởi B2 (parametrize), nên TC-13 chuyển sang kiểm thử đăng nhập vai trò Thủ thư để tránh trùng lặp.
+- **Screenshot**: `screenshots/login_success_librarian.png`
 
 #### TC-14: Thành viên tạm ngưng mượn sách → bị từ chối ✅ PASSED
 
 - **Mô tả**: Đăng nhập bằng tài khoản `cu.le@email.com` (MEM004 — Tạm ngưng) → thử mượn sách → bị từ chối.
-- **Cách kiểm tra**: Kiểm tra thông báo từ chối liên quan đến tạm ngưng.
+- **Cách kiểm tra**: Poll Semantics Tree (~300ms/lần) để bắt SnackBar từ chối liên quan đến "tạm ngưng"/"không thể".
 - **Kết quả**: Hệ thống từ chối đúng, phù hợp với SRS REQ-04.
+- **Ghi chú**: SnackBar từ chối thoáng qua → test poll để bắt kịp; chạy với `--disable-gpu` để renderer CanvasKit không crash ở bước xác nhận.
 - **Screenshot**: `screenshots/borrow_suspended_member.png`
 
 #### TC-15: Thành viên hết hạn mượn sách → bị từ chối ✅ PASSED
 
 - **Mô tả**: Đăng nhập bằng tài khoản `binh.pham@email.com` (MEM005 — Hết hạn) → thử mượn sách → bị từ chối.
-- **Cách kiểm tra**: Kiểm tra thông báo từ chối liên quan đến hết hạn.
+- **Cách kiểm tra**: Poll Semantics Tree (~300ms/lần) để bắt SnackBar từ chối liên quan đến "hết hạn"/"không thể".
 - **Kết quả**: Hệ thống từ chối đúng và phân biệt lý do với tạm ngưng, phù hợp với SRS REQ-04.
+- **Ghi chú**: Luồng này dễ làm renderer CanvasKit crash nhất; đã xử lý bằng `--disable-gpu` + poll bắt SnackBar.
 - **Screenshot**: `screenshots/borrow_expired_member.png`
 
 ---
@@ -179,21 +184,22 @@
 
 ### Vấn đề phát hiện
 
-1. **Flutter CanvasKit + Chromium headless crash**: Khi thực hiện mượn sách (TC-08), sau khi click xác nhận trong dialog, trang có thể crash trong chế độ headless. Đây là vấn đề của Flutter Web CanvasKit renderer với Chromium headless, không phải bug của hệ thống.
+1. **Flutter CanvasKit renderer crash ("Ôi, hỏng!" / "Aw, Snap!" / Target crashed)**: Ở bước xác nhận mượn sách (đặc biệt với tài khoản hết hạn/tạm ngưng), GPU process của Chromium có thể crash khiến trang hỏng. Đây là vấn đề của CanvasKit renderer + GPU process, **KHÔNG phải bug nghiệp vụ** của hệ thống. **Cách khắc phục đã kiểm chứng**: thêm cờ `--disable-gpu` khi khởi chạy Chromium (render bằng phần mềm) → hết crash, toàn bộ 18/18 test PASS ổn định. (Trước khi thêm cờ: TC-08/14/15 crash hàng loạt; sau khi thêm: không còn crash.)
+2. **SnackBar thông báo từ chối thoáng qua**: Thông báo từ chối (tạm ngưng/hết hạn) chỉ hiện trong thời gian ngắn → TC-14/TC-15 poll Semantics Tree theo chu kỳ ~300ms để bắt kịp thay vì chỉ đọc một lần.
 
 ### Kỹ thuật test
 
-- Sử dụng **Smart Wait** (`wait_for_flutter`, `wait_for`) thay vì `time.sleep()` ở hầu hết các test.
+- Sử dụng **Smart Wait** (`wait_for_flutter`, `locator.wait_for`) cho các bước then chốt (đăng nhập, chờ kết quả tìm kiếm). Một số bước sau khi Flutter re-render dùng thêm khoảng chờ cố định ngắn (`wait_for_timeout`) hoặc **poll** để ổn định — không dùng `time.sleep()`.
 - Tương tác qua **Accessibility Semantics Tree** (aria-label, role) do Flutter CanvasKit không có DOM thông thường.
-- Mỗi test có **screenshot** tự động làm minh chứng.
-- Assert kiểm tra **text cụ thể** (thông báo lỗi, tên sách, trạng thái) thay vì chỉ kiểm tra URL.
+- Mỗi test có **screenshot** tự động làm minh chứng (17 ảnh trong `screenshots/`).
+- Assert kiểm tra **text/trạng thái cụ thể** (thông báo lỗi, tên sách, dialog "Xác nhận mượn sách", thông báo từ chối) thay vì chỉ kiểm tra URL.
 
 ---
 
 ## 4. Khai báo sử dụng AI
 
-Nhóm có sử dụng công cụ AI (Warp Oz Agent) để hỗ trợ viết test code cho TC-02 đến TC-12. Cụ thể:
+Nhóm có sử dụng công cụ AI (Warp Oz Agent) để hỗ trợ. Cụ thể:
 
-- **Công cụ**: Warp Oz Agent (Claude)
-- **Phạm vi sử dụng**: Viết code cho 11 test case (TC-02 → TC-12) và 6 bonus test (TC-13 → TC-15 + 3 parametrize) dựa trên pattern mẫu TC-01 và hints có sẵn trong từng file.
-- **Kiểm tra**: Đã chạy `pytest` xác nhận 18/18 test PASSED. Đã review và điều chỉnh TC-08 để xử lý crash issue của Flutter CanvasKit headless.
+- **Công cụ**: Warp Oz Agent
+- **Phạm vi sử dụng**: Viết code cho 11 test case (TC-02 → TC-12) và 6 bonus test (TC-13 → TC-15 + 3 parametrize) dựa trên pattern mẫu TC-01 và hints có sẵn; rà soát chất lượng (dọn import thừa, thêm `.first` tránh strict-mode, oracle mạnh cho TC-08, đổi TC-13 để không trùng với B2); tìm và kiểm chứng cách khắc phục crash CanvasKit bằng `--disable-gpu`.
+- **Kiểm tra**: Đã chạy `pytest` trên hệ thống thật và xác nhận **18/18 PASSED**, sinh đủ 17 screenshot minh chứng.

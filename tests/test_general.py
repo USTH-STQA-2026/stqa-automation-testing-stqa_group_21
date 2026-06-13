@@ -16,12 +16,7 @@ Hints (*Gợi ý*):
       (*Sau chuyển EN: text tiếng Anh có thể xuất hiện*)
 """
 import os
-import time
-import pytest
-from conftest import (
-    enable_flutter_semantics, flutter_fill, flutter_click_button,
-    login, SCREENSHOT_DIR,
-)
+from conftest import enable_flutter_semantics, login, SCREENSHOT_DIR
 
 
 def test_logout(page, test_config):
@@ -33,7 +28,7 @@ def test_logout(page, test_config):
     login(page, test_config)
 
     # Act: Click nút "Đăng xuất"
-    logout_btn = page.locator('flt-semantics[role="button"]:has-text("Đăng xuất")')
+    logout_btn = page.locator('flt-semantics[role="button"]:has-text("Đăng xuất")').first
     logout_btn.click()
 
     # Smart Wait: Chờ quay về trang đăng nhập
@@ -58,7 +53,7 @@ def test_switch_language_to_english(page, test_config):
     login(page, test_config)
 
     # Act: Click nút "EN" để chuyển ngôn ngữ
-    en_btn = page.locator('flt-semantics[role="button"]:has-text("EN")')
+    en_btn = page.locator('flt-semantics[role="button"]:has-text("EN")').first
     en_btn.click()
 
     # Smart Wait: Chờ giao diện chuyển ngôn ngữ

@@ -59,9 +59,13 @@ def browser():
     # Use explicit HEADLESS env so CI can choose headed mode with xvfb when needed.
     headless = os.getenv("HEADLESS", "false").lower() == "true"
     with sync_playwright() as p:
+        # --force-renderer-accessibility: bật Semantics Tree cho Flutter CanvasKit.
+        # --disable-gpu: render bằng phần mềm để tránh GPU process của Chromium
+        #   crash ("Aw, Snap!" / Target crashed) ở một số luồng Flutter CanvasKit
+        #   (điển hình: xác nhận mượn sách). Ổn định hơn, chỉ chậm hơn chút ít.
         browser = p.chromium.launch(
             headless=headless,
-            args=["--force-renderer-accessibility"],
+            args=["--force-renderer-accessibility", "--disable-gpu"],
         )
         yield browser
         browser.close()

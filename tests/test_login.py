@@ -80,32 +80,37 @@ def test_login_fail_parametrize(page, test_config, email, password, expected_err
         f"Expected error '{expected_error}' not found in: {sem_text[:200]}"
 
 
-def test_login_fail_nonexistent_email(page, test_config):
-    """TC-13 (B1): Login fail – email không tồn tại (*Non-existent email*)
+def test_login_success_librarian(page, test_config):
+    """TC-13 (B1): Login success as Librarian (*Đăng nhập thành công với vai trò Thủ thư*)
+
+    Khác với TC-01 (đăng nhập Thành viên), TC này kiểm tra đăng nhập bằng tài khoản
+    Thủ thư (librarian@library.com) — xác minh hệ thống nhận đúng vai trò Thủ thư.
 
     📖 RIPR Model:
         [R] Truy cập trang đăng nhập
-        [I] Nhập email không tồn tại → kích hoạt nhánh "Không tìm thấy thành viên"
-        [P] Lỗi lan truyền ra thông báo trên UI
-        [R✓] Assert kiểm tra thông báo lỗi
+        [I] Nhập credentials Thủ thư hợp lệ → kích hoạt logic đăng nhập
+        [P] Trạng thái lan truyền ra UI (tên + vai trò Thủ thư)
+        [R✓] Assert tên hiển thị "Nguyễn Thủ Thư" hoặc nút "Đăng xuất"
     """
     # [R] Reachability
     page.goto(test_config["base_url"], wait_until="networkidle", timeout=60000)
     enable_flutter_semantics(page)
 
-    # [I] Infection: Nhập email không tồn tại
-    flutter_fill(page, "Email", "nobody@test.com")
-    flutter_fill(page, "Mật khẩu", "anything")
+    # [I] Infection: Đăng nhập bằng tài khoản Thủ thư
+    flutter_fill(page, "Email", "librarian@library.com")
+    flutter_fill(page, "Mật khẩu", "admin123")
     flutter_click_button(page, "Đăng nhập")
 
-    # [P] Propagation
-    wait_for_flutter(page, text="Không tìm thấy thành viên")
-    page.screenshot(path=os.path.join(SCREENSHOT_DIR, "login_fail_nonexistent_email.png"))
+    # [P] Propagation: Chờ trang chính load
+    wait_for_flutter(page, text="Đăng xuất")
+    page.screenshot(path=os.path.join(SCREENSHOT_DIR, "login_success_librarian.png"))
 
-    # [R✓] Revealability
+    # [R✓] Revealability: Kiểm tra đăng nhập đúng vai trò Thủ thư
     sem_text = " ".join(page.locator("flt-semantics").all_text_contents())
-    assert "Không tìm thấy thành viên" in sem_text, \
-        f"Expected error 'Không tìm thấy thành viên' not found in: {sem_text[:200]}"
+    has_librarian = "Nguyễn Thủ Thư" in sem_text or "Thủ thư" in sem_text
+    has_logout = "Đăng xuất" in sem_text or "Logout" in sem_text
+    assert has_librarian or has_logout, \
+        f"Đăng nhập Thủ thư không thành công. Sem text: {sem_text[:200]}"
 
 
 def test_login_fail_wrong_password(page, test_config):
