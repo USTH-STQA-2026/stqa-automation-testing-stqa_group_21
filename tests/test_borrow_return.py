@@ -1,20 +1,15 @@
 """
-Borrow & Return Tests (*Kiểm thử Mượn & Trả sách*) — Library Book Borrowing System (*Hệ thống Mượn sách thư viện*)
+Borrow & Return Tests — Library Book Borrowing System
 
 Students must complete ALL 3 test cases in this file.
-(*Sinh viên cần hoàn thành TẤT CẢ 3 test case trong file này.*)
 
-Hints (*Gợi ý*):
-    - Use login() helper to log in (*Dùng login() helper để đăng nhập*)
+Hints:
+    - Use the login() helper to log in
     - "Mượn / Trả" tab: role="tab", aria-label="Mượn / Trả"
-    - Available books have "Có sẵn" in aria-label, borrowed books have "Đang mượn"
-      (*Sách "Có sẵn" có aria-label chứa "Có sẵn", sách "Đang mượn" chứa "Đang mượn"*)
+    - Available books have "Có sẵn" in the aria-label, borrowed books have "Đang mượn"
     - Borrow button: 'flt-semantics[role="button"]:has-text("Mượn sách này")'
-      (*Nút mượn*)
     - After clicking "Mượn sách này", a confirmation dialog appears — click "Mượn" again
-      (*Sau khi click "Mượn sách này" sẽ hiện dialog xác nhận — cần click nút "Mượn" lần nữa*)
     - Return button: 'flt-semantics[role="button"]:has-text("Trả sách")'
-      (*Nút trả*)
 """
 import os
 import pytest
@@ -26,12 +21,12 @@ from conftest import (
 
 
 def test_borrow_book(page, test_config):
-    """TC-08: Borrow an available book (*Mượn sách có trạng thái 'Có sẵn'*)
+    """TC-08: Borrow an available book
 
-    Mô tả: Đăng nhập bằng tài khoản dam.tran (chưa mượn sách) → tìm sách "Có sẵn"
-    → click "Mượn sách này" → xác nhận → kiểm tra mượn thành công.
+    Description: Log in with the dam.tran account (no borrowed books) → find an
+    "Có sẵn" (available) book → click "Mượn sách này" → confirm → verify the borrow succeeded.
     """
-    # Arrange: Đăng nhập bằng tài khoản dam.tran (chưa mượn sách nào)
+    # Arrange: Log in with the dam.tran account (has not borrowed any book)
     page.goto(test_config["base_url"], wait_until="networkidle", timeout=60000)
     enable_flutter_semantics(page)
     flutter_fill(page, "Email", "dam.tran@email.com")
@@ -40,7 +35,7 @@ def test_borrow_book(page, test_config):
     wait_for_flutter(page, text="Đăng xuất")
     enable_flutter_semantics(page)
 
-    # Act: Tìm sách "Có sẵn" và click "Mượn sách này"
+    # Act: Find an "Có sẵn" book and click "Mượn sách này"
     available_books = page.locator('flt-semantics[role="group"][aria-label*="Có sẵn"]')
     available_books.first.wait_for(state="attached", timeout=10000)
     page.screenshot(path=os.path.join(SCREENSHOT_DIR, "borrow_book_before.png"))
@@ -48,23 +43,23 @@ def test_borrow_book(page, test_config):
     borrow_btn = page.locator('flt-semantics[role="button"]:has-text("Mượn sách này")').first
     borrow_btn.click()
 
-    # Chờ dialog xác nhận xuất hiện và chụp screenshot làm minh chứng
+    # Wait for the confirmation dialog to appear and take a screenshot as evidence
     page.wait_for_timeout(2000)
     enable_flutter_semantics(page)
 
-    # Verify dialog xác nhận đã xuất hiện (có nút "Mượn" xác nhận)
+    # Verify the confirmation dialog appeared (has a "Mượn" confirm button)
     sem_text_dialog = " ".join(page.locator("flt-semantics").all_text_contents())
     page.screenshot(path=os.path.join(SCREENSHOT_DIR, "borrow_book_dialog.png"))
 
-    # Click nút xác nhận "Mượn" trong dialog (khớp chính xác, tránh trùng "Mượn sách này")
+    # Click the "Mượn" confirm button in the dialog (exact match, to avoid matching "Mượn sách này")
     page.locator('flt-semantics[role="button"]:text-is("Mượn")').first.click()
 
-    # Chờ kết quả mượn
+    # Wait for the borrow result
     page.wait_for_timeout(3000)
 
-    # Đọc kết quả sau xác nhận. Flutter CanvasKit ở chế độ headless có thể crash
-    # ("Target crashed") ngay sau khi xác nhận — đây là giới hạn của renderer,
-    # KHÔNG phải bug hệ thống. Tách riêng lỗi crash (PlaywrightError) với lỗi assert.
+    # Read the result after confirmation. Flutter CanvasKit in headless mode may crash
+    # ("Target crashed") right after confirmation — this is a renderer limitation,
+    # NOT a system bug. Separate the crash error (PlaywrightError) from the assertion error.
     sem_text = None
     try:
         enable_flutter_semantics(page)
@@ -74,83 +69,83 @@ def test_borrow_book(page, test_config):
         sem_text = None
 
     if sem_text is not None:
-        # Oracle mạnh: xác minh mượn thành công (thông báo "thành công" hoặc sách "Đang mượn")
+        # Strong oracle: verify the borrow succeeded (a "thành công" message or the book is "Đang mượn")
         assert "thành công" in sem_text.lower() or "Đang mượn" in sem_text, \
-            f"Mượn sách không thành công. Sem text: {sem_text[:300]}"
+            f"Borrowing the book failed. Sem text: {sem_text[:300]}"
     else:
-        # Page crash sau xác nhận (headless CanvasKit). Đã chụp dialog xác nhận ở bước
-        # trước → kiểm chứng luồng mượn đã tới đúng dialog "Xác nhận mượn sách".
+        # The page crashed after confirmation (headless CanvasKit). We already captured the
+        # confirmation dialog above → verify the borrow flow reached the correct
+        # "Xác nhận mượn sách" dialog.
         assert "Xác nhận mượn sách" in sem_text_dialog, \
-            f"Không thấy dialog 'Xác nhận mượn sách'. Dialog text: {sem_text_dialog[:300]}"
+            f"The 'Xác nhận mượn sách' dialog was not found. Dialog text: {sem_text_dialog[:300]}"
 
 
 def test_view_borrowed_books(page, test_config):
-    """TC-09: View borrowed books list (*Xem danh sách sách đang mượn — tab Mượn / Trả*)
+    """TC-09: View borrowed books list
 
-    Mô tả: Đăng nhập (ba.nguyen — đang mượn 1 sách) → chuyển tab "Mượn / Trả"
-    → kiểm tra có phiếu mượn hiển thị.
+    Description: Log in (ba.nguyen — borrowing 1 book) → switch to the "Mượn / Trả" tab
+    → verify a borrow record is shown.
     """
-    # Arrange: Đăng nhập (ba.nguyen đang mượn BOOK003)
+    # Arrange: Log in (ba.nguyen is borrowing BOOK003)
     login(page, test_config)
 
-    # Act: Chuyển sang tab "Mượn / Trả"
+    # Act: Switch to the "Mượn / Trả" tab
     borrow_tab = page.locator('flt-semantics[role="tab"][aria-label="Mượn / Trả"]').first
     borrow_tab.click()
 
-    # Smart Wait: Chờ tab load
+    # Smart Wait: Wait for the tab to load
     page.wait_for_timeout(2000)
     enable_flutter_semantics(page)
     page.screenshot(path=os.path.join(SCREENSHOT_DIR, "view_borrowed_books.png"))
 
-    # Assert: Kiểm tra có phiếu mượn hiển thị (đang mượn hoặc có nút "Trả sách")
+    # Assert: Verify a borrow record is shown (borrowing, or has a "Trả sách" button)
     sem_text = " ".join(page.locator("flt-semantics").all_text_contents())
     has_borrow_record = "Đang mượn" in sem_text or "Trả sách" in sem_text or "BR001" in sem_text
     assert has_borrow_record, \
-        f"Không tìm thấy phiếu mượn nào trong tab 'Mượn / Trả'. Sem text: {sem_text[:300]}"
+        f"No borrow record found in the 'Mượn / Trả' tab. Sem text: {sem_text[:300]}"
 
 
 def test_return_book(page, test_config):
-    """TC-10: Return a borrowed book (*Trả sách đang mượn*)
+    """TC-10: Return a borrowed book
 
-    Mô tả: Đăng nhập (ba.nguyen đang mượn BOOK003) → tab "Mượn / Trả"
-    → click "Trả sách" → kiểm tra sách được trả thành công.
+    Description: Log in (ba.nguyen is borrowing BOOK003) → "Mượn / Trả" tab
+    → click "Trả sách" → verify the book was returned successfully.
     """
-    # Arrange: Đăng nhập
+    # Arrange: Log in
     login(page, test_config)
 
-    # Act: Chuyển sang tab "Mượn / Trả"
+    # Act: Switch to the "Mượn / Trả" tab
     borrow_tab = page.locator('flt-semantics[role="tab"][aria-label="Mượn / Trả"]').first
     borrow_tab.click()
 
-    # Chờ tab load
+    # Wait for the tab to load
     page.wait_for_timeout(2000)
     enable_flutter_semantics(page)
 
-    # Click nút "Trả sách"
+    # Click the "Trả sách" button
     return_btn = page.locator('flt-semantics[role="button"]:has-text("Trả sách")').first
     return_btn.wait_for(state="attached", timeout=10000)
     return_btn.click()
 
-    # Smart Wait: Chờ kết quả trả sách
+    # Smart Wait: Wait for the return result
     page.wait_for_timeout(2000)
     enable_flutter_semantics(page)
     page.screenshot(path=os.path.join(SCREENSHOT_DIR, "return_book.png"))
 
-    # Assert: Kiểm tra trả sách thành công
+    # Assert: Verify the book was returned successfully
     sem_text = " ".join(page.locator("flt-semantics").all_text_contents())
     has_success = "thành công" in sem_text.lower() or "Đã trả" in sem_text or "Có sẵn" in sem_text
     assert has_success, \
-        f"Trả sách không thành công. Sem text: {sem_text[:300]}"
+        f"Returning the book failed. Sem text: {sem_text[:300]}"
 
 
 def test_borrow_book_suspended_member(page, test_config):
     """TC-14 (B1): Suspended member tries to borrow → rejected
-    (*Thành viên bị tạm ngưng mượn sách → bị từ chối*)
 
-    SRS REQ-04: Từ chối nếu thành viên bị tạm ngưng.
-    Tài khoản: cu.le@email.com (MEM004 — Tạm ngưng)
+    SRS REQ-04: Reject borrowing if the member is suspended.
+    Account: cu.le@email.com (MEM004 — Suspended)
     """
-    # Arrange: Đăng nhập bằng tài khoản bị tạm ngưng
+    # Arrange: Log in with the suspended account
     page.goto(test_config["base_url"], wait_until="networkidle", timeout=60000)
     enable_flutter_semantics(page)
     flutter_fill(page, "Email", "cu.le@email.com")
@@ -159,23 +154,23 @@ def test_borrow_book_suspended_member(page, test_config):
     wait_for_flutter(page, text="Đăng xuất")
     enable_flutter_semantics(page)
 
-    # Act: Tìm sách "Có sẵn" và thử mượn
+    # Act: Find an "Có sẵn" book and try to borrow it
     available_books = page.locator('flt-semantics[role="group"][aria-label*="Có sẵn"]')
     available_books.first.wait_for(state="attached", timeout=10000)
 
     borrow_btn = page.locator('flt-semantics[role="button"]:has-text("Mượn sách này")').first
     borrow_btn.click()
 
-    # Chờ dialog xác nhận xuất hiện
+    # Wait for the confirmation dialog to appear
     page.wait_for_timeout(2000)
     enable_flutter_semantics(page)
 
-    # Click nút xác nhận "Mượn" trong dialog (khớp chính xác, tránh trùng "Mượn sách này")
+    # Click the "Mượn" confirm button in the dialog (exact match, to avoid matching "Mượn sách này")
     page.locator('flt-semantics[role="button"]:text-is("Mượn")').first.click()
 
-    # Sau xác nhận: thông báo từ chối hiện dạng SnackBar (thoáng qua) và renderer
-    # CanvasKit đôi khi crash. Poll nhanh để bắt thông báo trước khi nó biến mất /
-    # trước khi crash; nếu crash thì skip (giới hạn renderer, không phải bug hệ thống).
+    # After confirmation: the rejection message shows as a transient SnackBar, and the
+    # CanvasKit renderer sometimes crashes. Poll quickly to catch the message before it
+    # disappears / before a crash; if it crashes, skip (renderer limitation, not a system bug).
     keywords = ("tạm ngưng", "suspended", "không thể", "từ chối")
     sem_text = ""
     found = False
@@ -184,7 +179,7 @@ def test_borrow_book_suspended_member(page, test_config):
         try:
             txt = " ".join(page.locator("flt-semantics").all_text_contents())
         except PlaywrightError:
-            pytest.skip("Flutter CanvasKit crash sau xác nhận — cần môi trường headed ổn định để đọc thông báo từ chối")
+            pytest.skip("Flutter CanvasKit crashed after confirmation — a stable headed environment is needed to read the rejection message")
         if txt:
             sem_text = txt
         if any(k in txt.lower() for k in keywords):
@@ -195,19 +190,18 @@ def test_borrow_book_suspended_member(page, test_config):
     except PlaywrightError:
         pass
 
-    # Assert: Kiểm tra thông báo từ chối liên quan đến tạm ngưng
+    # Assert: Verify a rejection message related to suspension
     assert found, \
-        f"Thành viên bị tạm ngưng vẫn mượn được sách (không có thông báo từ chối). Sem text: {sem_text[:300]}"
+        f"The suspended member was still able to borrow (no rejection message). Sem text: {sem_text[:300]}"
 
 
 def test_borrow_book_expired_member(page, test_config):
     """TC-15 (B1): Expired member tries to borrow → rejected
-    (*Thành viên hết hạn mượn sách → bị từ chối*)
 
-    SRS REQ-04: Từ chối nếu thành viên hết hạn. Thông báo phải phân biệt đúng lý do.
-    Tài khoản: binh.pham@email.com (MEM005 — Hết hạn)
+    SRS REQ-04: Reject borrowing if the member is expired. The message must state the correct reason.
+    Account: binh.pham@email.com (MEM005 — Expired)
     """
-    # Arrange: Đăng nhập bằng tài khoản hết hạn
+    # Arrange: Log in with the expired account
     page.goto(test_config["base_url"], wait_until="networkidle", timeout=60000)
     enable_flutter_semantics(page)
     flutter_fill(page, "Email", "binh.pham@email.com")
@@ -216,23 +210,23 @@ def test_borrow_book_expired_member(page, test_config):
     wait_for_flutter(page, text="Đăng xuất")
     enable_flutter_semantics(page)
 
-    # Act: Tìm sách "Có sẵn" và thử mượn
+    # Act: Find an "Có sẵn" book and try to borrow it
     available_books = page.locator('flt-semantics[role="group"][aria-label*="Có sẵn"]')
     available_books.first.wait_for(state="attached", timeout=10000)
 
     borrow_btn = page.locator('flt-semantics[role="button"]:has-text("Mượn sách này")').first
     borrow_btn.click()
 
-    # Chờ dialog xác nhận xuất hiện
+    # Wait for the confirmation dialog to appear
     page.wait_for_timeout(2000)
     enable_flutter_semantics(page)
 
-    # Click nút xác nhận "Mượn" trong dialog (khớp chính xác, tránh trùng "Mượn sách này")
+    # Click the "Mượn" confirm button in the dialog (exact match, to avoid matching "Mượn sách này")
     page.locator('flt-semantics[role="button"]:text-is("Mượn")').first.click()
 
-    # Sau xác nhận: thông báo từ chối hiện dạng SnackBar (thoáng qua) và renderer
-    # CanvasKit đôi khi crash. Poll nhanh để bắt thông báo trước khi nó biến mất /
-    # trước khi crash; nếu crash thì skip (giới hạn renderer, không phải bug hệ thống).
+    # After confirmation: the rejection message shows as a transient SnackBar, and the
+    # CanvasKit renderer sometimes crashes. Poll quickly to catch the message before it
+    # disappears / before a crash; if it crashes, skip (renderer limitation, not a system bug).
     keywords = ("hết hạn", "expired", "không thể", "từ chối")
     sem_text = ""
     found = False
@@ -241,7 +235,7 @@ def test_borrow_book_expired_member(page, test_config):
         try:
             txt = " ".join(page.locator("flt-semantics").all_text_contents())
         except PlaywrightError:
-            pytest.skip("Flutter CanvasKit crash sau xác nhận — cần môi trường headed ổn định để đọc thông báo từ chối")
+            pytest.skip("Flutter CanvasKit crashed after confirmation — a stable headed environment is needed to read the rejection message")
         if txt:
             sem_text = txt
         if any(k in txt.lower() for k in keywords):
@@ -252,6 +246,6 @@ def test_borrow_book_expired_member(page, test_config):
     except PlaywrightError:
         pass
 
-    # Assert: Kiểm tra thông báo từ chối liên quan đến hết hạn
+    # Assert: Verify a rejection message related to expiration
     assert found, \
-        f"Thành viên hết hạn vẫn mượn được sách (không có thông báo từ chối). Sem text: {sem_text[:300]}"
+        f"The expired member was still able to borrow (no rejection message). Sem text: {sem_text[:300]}"

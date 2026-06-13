@@ -1,205 +1,205 @@
-# REPORT — Báo cáo kết quả kiểm thử tự động
+# REPORT — Automated Testing Results
 
-**Nhóm**: Nhóm 21  
-**Lớp**: STQA — USTH  
-**Học kỳ**: HK2 2025-2026  
-**Hệ thống**: Quản lý mượn sách Thư viện ABC — https://stqa.rbc.vn  
-**Công cụ**: Python + Playwright + pytest  
-**Ngày chạy test**: 13/06/2026
+**Group**: Group 21  
+**Class**: STQA — USTH  
+**Semester**: Semester 2, 2025-2026  
+**System**: ABC Library Book Borrowing — https://stqa.rbc.vn  
+**Tools**: Python + Playwright + pytest  
+**Test run date**: 13/06/2026
 
 ---
 
-## 1. Tổng quan kết quả
+## 1. Results Overview
 
-| Chỉ số | Giá trị |
-|--------|---------|
-| Tổng số test case | 18 (12 bắt buộc + 3 bonus B1 + 3 parametrize B2) |
+| Metric | Value |
+|--------|-------|
+| Total test cases | 18 (12 required + 3 bonus B1 + 3 parametrize B2) |
 | PASSED | 18 |
 | FAILED | 0 |
-| Thời gian chạy | ~2 phút 50 giây |
-| Trình duyệt | Chromium (headless, cờ `--disable-gpu`) |
+| Run time | ~2 min 50 sec |
+| Browser | Chromium (headless, `--disable-gpu` flag) |
 
-> Lưu ý môi trường: chạy với `--disable-gpu` (render bằng phần mềm) để tránh GPU process của Chromium crash ở luồng Flutter CanvasKit. Xem mục 3 — "Vấn đề phát hiện".
+> Environment note: run with `--disable-gpu` (software rendering) to avoid the Chromium GPU process crashing on the Flutter CanvasKit path. See section 3 — "Issues found".
 
 ---
 
-## 2. Chi tiết từng Test Case
+## 2. Test Case Details
 
-### Nhóm 1: Đăng nhập (`tests/test_login.py`)
+### Group 1: Login (`tests/test_login.py`)
 
-#### TC-01: Đăng nhập thành công ✅ PASSED
+#### TC-01: Login success ✅ PASSED
 
-- **Mô tả**: Nhập email và mật khẩu đúng → hệ thống chuyển sang trang chủ.
-- **Tài khoản**: `ba.nguyen@email.com` / `password123`
-- **Cách kiểm tra**: Sau khi đăng nhập, kiểm tra Semantics Tree có chứa tên hiển thị "Nguyễn Học Bá" hoặc nút "Đăng xuất".
-- **Kết quả**: Đăng nhập thành công, tên người dùng và nút "Đăng xuất" hiển thị đúng.
+- **Description**: Enter the correct email and password → the system navigates to the home page.
+- **Account**: `ba.nguyen@email.com` / `password123`
+- **How it is verified**: After logging in, check that the Semantics Tree contains the display name "Nguyễn Học Bá" or the "Đăng xuất" (Logout) button.
+- **Result**: Login succeeded; the username and the "Đăng xuất" button are displayed correctly.
 - **Screenshot**: `screenshots/login_success.png`
 
-#### TC-02: Đăng nhập thất bại — sai mật khẩu ✅ PASSED
+#### TC-02: Login failure — wrong password ✅ PASSED
 
-- **Mô tả**: Nhập email đúng nhưng mật khẩu sai → hệ thống hiển thị thông báo lỗi.
-- **Dữ liệu**: Email đúng (`ba.nguyen@email.com`), mật khẩu sai (`wrongpassword`)
-- **Cách kiểm tra**: Kiểm tra Semantics Tree chứa thông báo "Mật khẩu không đúng".
-- **Kết quả**: Hệ thống hiển thị đúng thông báo lỗi "Mật khẩu không đúng", phù hợp với SRS REQ-01.
+- **Description**: Enter the correct email but a wrong password → the system shows an error message.
+- **Data**: Correct email (`ba.nguyen@email.com`), wrong password (`wrongpassword`)
+- **How it is verified**: Check that the Semantics Tree contains the message "Mật khẩu không đúng" (Wrong password).
+- **Result**: The system correctly shows the error "Mật khẩu không đúng", consistent with SRS REQ-01.
 - **Screenshot**: `screenshots/login_fail_wrong_password.png`
 
-#### TC-03: Đăng nhập thất bại — để trống ✅ PASSED
+#### TC-03: Login failure — empty fields ✅ PASSED
 
-- **Mô tả**: Không nhập gì, bấm Đăng nhập → hệ thống hiển thị thông báo lỗi.
-- **Dữ liệu**: Email trống, mật khẩu trống
-- **Cách kiểm tra**: Kiểm tra Semantics Tree chứa thông báo "Vui lòng nhập email và mật khẩu".
-- **Kết quả**: Hệ thống hiển thị đúng thông báo validation, phù hợp với SRS REQ-01.
+- **Description**: Enter nothing, click Login → the system shows an error message.
+- **Data**: Empty email, empty password
+- **How it is verified**: Check that the Semantics Tree contains the message "Vui lòng nhập email và mật khẩu" (Please enter email and password).
+- **Result**: The system correctly shows the validation message, consistent with SRS REQ-01.
 - **Screenshot**: `screenshots/login_fail_empty_fields.png`
 
 ---
 
-### Nhóm 2: Tìm kiếm & Lọc sách (`tests/test_search.py`)
+### Group 2: Search & Filter (`tests/test_search.py`)
 
-#### TC-04: Tìm sách theo tên ✅ PASSED
+#### TC-04: Search book by name ✅ PASSED
 
-- **Mô tả**: Đăng nhập → tìm kiếm từ khóa "Flutter" → kiểm tra kết quả chứa sách Flutter.
-- **Cách kiểm tra**: Kiểm tra có element `flt-semantics[aria-label*="Flutter"]` trong kết quả.
-- **Kết quả**: Tìm thấy sách "Lập trình Flutter cơ bản" (BOOK001), phù hợp với SRS REQ-03.
+- **Description**: Log in → search for the keyword "Flutter" → verify the results contain a Flutter book.
+- **How it is verified**: Check for a `flt-semantics[aria-label*="Flutter"]` element in the results.
+- **Result**: Found the book "Lập trình Flutter cơ bản" (BOOK001), consistent with SRS REQ-03.
 - **Screenshot**: `screenshots/search_book_by_name.png`
 
-#### TC-05: Tìm sách — không có kết quả ✅ PASSED
+#### TC-05: Search book — no results ✅ PASSED
 
-- **Mô tả**: Đăng nhập → tìm kiếm từ khóa không tồn tại → kiểm tra không có sách hiển thị.
-- **Dữ liệu**: Từ khóa `xyz_khong_ton_tai_12345`
-- **Cách kiểm tra**: Kiểm tra số lượng book card (`flt-semantics[role="group"][aria-label*="Mã: BOOK"]`) bằng 0.
-- **Kết quả**: Không có sách nào hiển thị khi tìm từ khóa không tồn tại, phù hợp với SRS REQ-03.
+- **Description**: Log in → search for a non-existent keyword → verify no book is shown.
+- **Data**: Keyword `xyz_khong_ton_tai_12345`
+- **How it is verified**: Check that the number of book cards (`flt-semantics[role="group"][aria-label*="Mã: BOOK"]`) equals 0.
+- **Result**: No book is shown for a non-existent keyword, consistent with SRS REQ-03.
 - **Screenshot**: `screenshots/search_book_no_result.png`
 
-#### TC-06: Lọc theo thể loại ✅ PASSED
+#### TC-06: Filter by category ✅ PASSED
 
-- **Mô tả**: Đăng nhập → nhập "Công nghệ" vào ô lọc thể loại → kiểm tra tất cả sách hiển thị đều thuộc thể loại Công nghệ.
-- **Cách kiểm tra**: Lặp qua từng book card, kiểm tra `aria-label` đều chứa "Công nghệ".
-- **Kết quả**: Tất cả sách hiển thị đều thuộc thể loại "Công nghệ", phù hợp với SRS REQ-03.
+- **Description**: Log in → type "Công nghệ" into the category filter → verify all displayed books belong to the Technology category.
+- **How it is verified**: Iterate over each book card and check that the `aria-label` contains "Công nghệ".
+- **Result**: All displayed books belong to the "Công nghệ" category, consistent with SRS REQ-03.
 - **Screenshot**: `screenshots/filter_by_category.png`
 
-#### TC-07: Tìm theo tác giả ✅ PASSED
+#### TC-07: Search by author ✅ PASSED
 
-- **Mô tả**: Đăng nhập → tìm kiếm tên tác giả "Nguyễn Minh Đức" → kiểm tra có kết quả.
-- **Cách kiểm tra**: Kiểm tra có element `flt-semantics[aria-label*="Nguyễn Minh Đức"]` trong kết quả.
-- **Kết quả**: Tìm thấy sách của tác giả Nguyễn Minh Đức (BOOK001, BOOK009), phù hợp với SRS REQ-03.
+- **Description**: Log in → search for the author "Nguyễn Minh Đức" → verify results exist.
+- **How it is verified**: Check for a `flt-semantics[aria-label*="Nguyễn Minh Đức"]` element in the results.
+- **Result**: Found books by author Nguyễn Minh Đức (BOOK001, BOOK009), consistent with SRS REQ-03.
 - **Screenshot**: `screenshots/search_by_author.png`
 
 ---
 
-### Nhóm 3: Mượn & Trả sách (`tests/test_borrow_return.py`)
+### Group 3: Borrow & Return (`tests/test_borrow_return.py`)
 
-#### TC-08: Mượn sách ✅ PASSED
+#### TC-08: Borrow a book ✅ PASSED
 
-- **Mô tả**: Đăng nhập bằng tài khoản `dam.tran@email.com` (chưa mượn sách) → tìm sách "Có sẵn" → click "Mượn sách này" → xác nhận dialog → kiểm tra mượn thành công.
-- **Tài khoản**: `dam.tran@email.com` / `password123` (Trần Dựa Dẫm — chưa mượn sách, phù hợp test mượn)
-- **Cách kiểm tra**: Kiểm tra thông báo "thành công" hoặc sách chuyển sang trạng thái "Đang mượn".
-- **Oracle dự phòng**: Nếu renderer crash ngay sau xác nhận (giới hạn CanvasKit), test kiểm chứng đã tới đúng dialog "Xác nhận mượn sách" thay vì assert chung chung.
-- **Kết quả**: Flow mượn sách hoạt động đúng: click "Mượn sách này" → dialog xác nhận → click "Mượn" → mượn thành công, phù hợp với SRS REQ-04.
-- **Screenshot**: `screenshots/borrow_book_before.png`, `screenshots/borrow_book_dialog.png`, `screenshots/borrow_book.png`
+- **Description**: Log in with `dam.tran@email.com` (no borrowed books) → find an available book → click "Mượn sách này" → confirm the dialog → verify the borrow succeeded.
+- **Account**: `dam.tran@email.com` / `password123` (Trần Dựa Dẫm — has not borrowed any book, suitable for the borrow test)
+- **How it is verified**: Check for a "thành công" (success) message or the book switching to the "Đang mượn" (borrowed) state.
+- **Fallback oracle**: If the renderer crashes right after confirmation (a CanvasKit limitation), the test verifies that it reached the correct "Xác nhận mượn sách" (Confirm borrow) dialog instead of a generic assertion.
+- **Result**: The borrow flow works correctly: click "Mượn sách này" → confirmation dialog → click "Mượn" → borrow succeeded, consistent with SRS REQ-04.
+- **Screenshots**: `screenshots/borrow_book_before.png`, `screenshots/borrow_book_dialog.png`, `screenshots/borrow_book.png`
 
-#### TC-09: Xem sách đang mượn ✅ PASSED
+#### TC-09: View borrowed books ✅ PASSED
 
-- **Mô tả**: Đăng nhập (ba.nguyen — đang mượn BOOK003) → chuyển sang tab "Mượn / Trả" → kiểm tra có phiếu mượn hiển thị.
-- **Cách kiểm tra**: Kiểm tra Semantics Tree chứa "Đang mượn", "Trả sách", hoặc mã phiếu "BR001".
-- **Kết quả**: Tab "Mượn / Trả" hiển thị đúng phiếu mượn của ba.nguyen, phù hợp với SRS REQ-08.
+- **Description**: Log in (ba.nguyen — borrowing BOOK003) → switch to the "Mượn / Trả" tab → verify a borrow record is shown.
+- **How it is verified**: Check that the Semantics Tree contains "Đang mượn", "Trả sách", or the record code "BR001".
+- **Result**: The "Mượn / Trả" tab correctly shows ba.nguyen's borrow record, consistent with SRS REQ-08.
 - **Screenshot**: `screenshots/view_borrowed_books.png`
 
-#### TC-10: Trả sách ✅ PASSED
+#### TC-10: Return a book ✅ PASSED
 
-- **Mô tả**: Đăng nhập (ba.nguyen đang mượn BOOK003) → tab "Mượn / Trả" → click "Trả sách" → kiểm tra trả thành công.
-- **Cách kiểm tra**: Kiểm tra Semantics Tree chứa "thành công", "Đã trả", hoặc "Có sẵn".
-- **Kết quả**: Trả sách thành công, phù hợp với SRS REQ-05.
+- **Description**: Log in (ba.nguyen borrowing BOOK003) → "Mượn / Trả" tab → click "Trả sách" → verify the return succeeded.
+- **How it is verified**: Check that the Semantics Tree contains "thành công", "Đã trả", or "Có sẵn".
+- **Result**: The book was returned successfully, consistent with SRS REQ-05.
 - **Screenshot**: `screenshots/return_book.png`
 
 ---
 
-### Nhóm 4: Chức năng chung (`tests/test_general.py`)
+### Group 4: General Features (`tests/test_general.py`)
 
-#### TC-11: Đăng xuất ✅ PASSED
+#### TC-11: Logout ✅ PASSED
 
-- **Mô tả**: Đăng nhập → click nút "Đăng xuất" → kiểm tra quay về trang đăng nhập.
-- **Cách kiểm tra**: Kiểm tra Semantics Tree chứa nút "Đăng nhập" hoặc ô input "Email", hoặc kiểm tra `input[aria-label="Email"]` tồn tại.
-- **Kết quả**: Đăng xuất thành công, trang quay về màn hình đăng nhập.
+- **Description**: Log in → click the "Đăng xuất" button → verify we return to the login page.
+- **How it is verified**: Check that the Semantics Tree contains a "Đăng nhập" button or an "Email" input, or that the `input[aria-label="Email"]` element exists.
+- **Result**: Logout succeeded; the page returned to the login screen.
 - **Screenshot**: `screenshots/logout.png`
 
-#### TC-12: Chuyển ngôn ngữ sang EN ✅ PASSED
+#### TC-12: Switch language to EN ✅ PASSED
 
-- **Mô tả**: Đăng nhập → click nút "EN" → kiểm tra giao diện chuyển sang tiếng Anh.
-- **Cách kiểm tra**: Kiểm tra Semantics Tree chứa các từ tiếng Anh: "Logout", "Borrow", "Library", hoặc "Search".
-- **Kết quả**: Giao diện chuyển sang tiếng Anh thành công, phù hợp với SRS mục 5 (Bilingual UI).
+- **Description**: Log in → click the "EN" button → verify the UI switches to English.
+- **How it is verified**: Check that the Semantics Tree contains the English words "Logout", "Borrow", "Library", or "Search".
+- **Result**: The UI switched to English successfully, consistent with SRS section 5 (Bilingual UI).
 - **Screenshot**: `screenshots/switch_language_en.png`
 
 ---
 
-### Bonus B1: Test case mới (`tests/test_login.py`, `tests/test_borrow_return.py`)
+### Bonus B1: New test cases (`tests/test_login.py`, `tests/test_borrow_return.py`)
 
-#### TC-13: Đăng nhập thành công với vai trò Thủ thư ✅ PASSED
+#### TC-13: Login success as Librarian ✅ PASSED
 
-- **Mô tả**: Đăng nhập bằng tài khoản Thủ thư `librarian@library.com` → hệ thống nhận đúng vai trò Thủ thư (khác TC-01 đăng nhập Thành viên).
-- **Dữ liệu**: Email `librarian@library.com`, mật khẩu `admin123`
-- **Cách kiểm tra**: Kiểm tra Semantics Tree chứa tên "Nguyễn Thủ Thư" hoặc nút "Đăng xuất".
-- **Kết quả**: Đăng nhập thành công, hiển thị đúng tên/vai trò Thủ thư, phù hợp với SRS REQ-01.
-- **Lý do thay đổi**: Kịch bản "email không tồn tại" đã được phủ bởi B2 (parametrize), nên TC-13 chuyển sang kiểm thử đăng nhập vai trò Thủ thư để tránh trùng lặp.
+- **Description**: Log in with the Librarian account `librarian@library.com` → the system recognizes the correct Librarian role (different from TC-01, which logs in as a Member).
+- **Data**: Email `librarian@library.com`, password `admin123`
+- **How it is verified**: Check that the Semantics Tree contains the name "Nguyễn Thủ Thư" or the "Đăng xuất" button.
+- **Result**: Login succeeded and the correct Librarian name/role is displayed, consistent with SRS REQ-01.
+- **Reason for change**: The "non-existent email" scenario is already covered by B2 (parametrize), so TC-13 was changed to test the Librarian-role login to avoid duplication.
 - **Screenshot**: `screenshots/login_success_librarian.png`
 
-#### TC-14: Thành viên tạm ngưng mượn sách → bị từ chối ✅ PASSED
+#### TC-14: Suspended member tries to borrow → rejected ✅ PASSED
 
-- **Mô tả**: Đăng nhập bằng tài khoản `cu.le@email.com` (MEM004 — Tạm ngưng) → thử mượn sách → bị từ chối.
-- **Cách kiểm tra**: Poll Semantics Tree (~300ms/lần) để bắt SnackBar từ chối liên quan đến "tạm ngưng"/"không thể".
-- **Kết quả**: Hệ thống từ chối đúng, phù hợp với SRS REQ-04.
-- **Ghi chú**: SnackBar từ chối thoáng qua → test poll để bắt kịp; chạy với `--disable-gpu` để renderer CanvasKit không crash ở bước xác nhận.
+- **Description**: Log in with `cu.le@email.com` (MEM004 — Suspended) → try to borrow a book → rejected.
+- **How it is verified**: Poll the Semantics Tree (~every 300ms) to catch the rejection SnackBar related to "tạm ngưng" (suspended) / "không thể" (cannot).
+- **Result**: The system rejected the request correctly, consistent with SRS REQ-04.
+- **Note**: The rejection SnackBar is transient → the test polls to catch it; run with `--disable-gpu` so the CanvasKit renderer does not crash at the confirmation step.
 - **Screenshot**: `screenshots/borrow_suspended_member.png`
 
-#### TC-15: Thành viên hết hạn mượn sách → bị từ chối ✅ PASSED
+#### TC-15: Expired member tries to borrow → rejected ✅ PASSED
 
-- **Mô tả**: Đăng nhập bằng tài khoản `binh.pham@email.com` (MEM005 — Hết hạn) → thử mượn sách → bị từ chối.
-- **Cách kiểm tra**: Poll Semantics Tree (~300ms/lần) để bắt SnackBar từ chối liên quan đến "hết hạn"/"không thể".
-- **Kết quả**: Hệ thống từ chối đúng và phân biệt lý do với tạm ngưng, phù hợp với SRS REQ-04.
-- **Ghi chú**: Luồng này dễ làm renderer CanvasKit crash nhất; đã xử lý bằng `--disable-gpu` + poll bắt SnackBar.
+- **Description**: Log in with `binh.pham@email.com` (MEM005 — Expired) → try to borrow a book → rejected.
+- **How it is verified**: Poll the Semantics Tree (~every 300ms) to catch the rejection SnackBar related to "hết hạn" (expired) / "không thể" (cannot).
+- **Result**: The system rejected the request correctly and distinguished the reason from suspension, consistent with SRS REQ-04.
+- **Note**: This flow is the most likely to crash the CanvasKit renderer; handled with `--disable-gpu` + polling for the SnackBar.
 - **Screenshot**: `screenshots/borrow_expired_member.png`
 
 ---
 
 ### Bonus B2: Data-Driven Test (`tests/test_login.py`)
 
-#### test_login_fail_parametrize — 3 bộ dữ liệu ✅ ALL PASSED
+#### test_login_fail_parametrize — 3 data sets ✅ ALL PASSED
 
-- **Kỹ thuật**: Sử dụng `@pytest.mark.parametrize` (Ch.3 §3.3.2) để chạy cùng kịch bản đăng nhập thất bại với nhiều bộ dữ liệu.
-- **Bộ dữ liệu**:
-  1. Email đúng + mật khẩu sai → "Mật khẩu không đúng"
-  2. Bỏ trống cả hai → "Vui lòng nhập email và mật khẩu"
-  3. Email không tồn tại → "Không tìm thấy thành viên"
-- **Kết quả**: Cả 3 bộ dữ liệu đều PASSED, thông báo lỗi phù hợp với SRS REQ-01.
-
----
-
-## 3. Nhận xét chung
-
-### Chất lượng hệ thống
-
-- **Đăng nhập**: Hoạt động đúng theo SRS REQ-01. Thông báo lỗi phân biệt rõ ràng giữa "sai mật khẩu" và "để trống".
-- **Tìm kiếm/Lọc**: Hoạt động đúng theo SRS REQ-03. Tìm kiếm theo tên sách, tác giả và lọc theo thể loại đều cho kết quả chính xác.
-- **Mượn/Trả sách**: Flow mượn và trả sách hoạt động đúng theo SRS REQ-04 và REQ-05.
-- **Chức năng chung**: Đăng xuất và chuyển ngôn ngữ hoạt động ổn định.
-
-### Vấn đề phát hiện
-
-1. **Flutter CanvasKit renderer crash ("Ôi, hỏng!" / "Aw, Snap!" / Target crashed)**: Ở bước xác nhận mượn sách (đặc biệt với tài khoản hết hạn/tạm ngưng), GPU process của Chromium có thể crash khiến trang hỏng. Đây là vấn đề của CanvasKit renderer + GPU process, **KHÔNG phải bug nghiệp vụ** của hệ thống. **Cách khắc phục đã kiểm chứng**: thêm cờ `--disable-gpu` khi khởi chạy Chromium (render bằng phần mềm) → hết crash, toàn bộ 18/18 test PASS ổn định. (Trước khi thêm cờ: TC-08/14/15 crash hàng loạt; sau khi thêm: không còn crash.)
-2. **SnackBar thông báo từ chối thoáng qua**: Thông báo từ chối (tạm ngưng/hết hạn) chỉ hiện trong thời gian ngắn → TC-14/TC-15 poll Semantics Tree theo chu kỳ ~300ms để bắt kịp thay vì chỉ đọc một lần.
-
-### Kỹ thuật test
-
-- Sử dụng **Smart Wait** (`wait_for_flutter`, `locator.wait_for`) cho các bước then chốt (đăng nhập, chờ kết quả tìm kiếm). Một số bước sau khi Flutter re-render dùng thêm khoảng chờ cố định ngắn (`wait_for_timeout`) hoặc **poll** để ổn định — không dùng `time.sleep()`.
-- Tương tác qua **Accessibility Semantics Tree** (aria-label, role) do Flutter CanvasKit không có DOM thông thường.
-- Mỗi test có **screenshot** tự động làm minh chứng (17 ảnh trong `screenshots/`).
-- Assert kiểm tra **text/trạng thái cụ thể** (thông báo lỗi, tên sách, dialog "Xác nhận mượn sách", thông báo từ chối) thay vì chỉ kiểm tra URL.
+- **Technique**: Use `@pytest.mark.parametrize` (Ch.3 §3.3.2) to run the same login-failure scenario with multiple data sets.
+- **Data sets**:
+  1. Correct email + wrong password → "Mật khẩu không đúng"
+  2. Both empty → "Vui lòng nhập email và mật khẩu"
+  3. Non-existent email → "Không tìm thấy thành viên"
+- **Result**: All 3 data sets PASSED; the error messages are consistent with SRS REQ-01.
 
 ---
 
-## 4. Khai báo sử dụng AI
+## 3. General Remarks
 
-Nhóm có sử dụng công cụ AI (Warp Oz Agent) để hỗ trợ. Cụ thể:
+### System quality
 
-- **Công cụ**: Warp Oz Agent
-- **Phạm vi sử dụng**: Viết code cho 11 test case (TC-02 → TC-12) và 6 bonus test (TC-13 → TC-15 + 3 parametrize) dựa trên pattern mẫu TC-01 và hints có sẵn; rà soát chất lượng (dọn import thừa, thêm `.first` tránh strict-mode, oracle mạnh cho TC-08, đổi TC-13 để không trùng với B2); tìm và kiểm chứng cách khắc phục crash CanvasKit bằng `--disable-gpu`.
-- **Kiểm tra**: Đã chạy `pytest` trên hệ thống thật và xác nhận **18/18 PASSED**, sinh đủ 17 screenshot minh chứng.
+- **Login**: Works correctly per SRS REQ-01. The error messages clearly distinguish between "wrong password" and "empty fields".
+- **Search/Filter**: Works correctly per SRS REQ-03. Searching by book name, by author, and filtering by category all return accurate results.
+- **Borrow/Return**: The borrow and return flows work correctly per SRS REQ-04 and REQ-05.
+- **General features**: Logout and language switching work stably.
+
+### Issues found
+
+1. **Flutter CanvasKit renderer crash ("Ôi, hỏng!" / "Aw, Snap!" / Target crashed)**: At the borrow-confirmation step (especially with expired/suspended accounts), the Chromium GPU process can crash and break the page. This is an issue of the CanvasKit renderer + GPU process, **NOT a business-logic bug** of the system. **Verified fix**: add the `--disable-gpu` flag when launching Chromium (software rendering) → no more crashes; all 18/18 tests pass stably. (Before the flag: TC-08/14/15 crashed repeatedly; after: no more crashes.)
+2. **Transient rejection SnackBar**: The rejection message (suspended/expired) appears only briefly → TC-14/TC-15 poll the Semantics Tree periodically (~every 300ms) to catch it instead of reading it only once.
+
+### Testing techniques
+
+- Use **Smart Wait** (`wait_for_flutter`, `locator.wait_for`) for the key steps (login, waiting for search results). Some steps after a Flutter re-render also use a short fixed wait (`wait_for_timeout`) or **polling** for stability — `time.sleep()` is not used.
+- Interact via the **Accessibility Semantics Tree** (aria-label, role) because Flutter CanvasKit has no regular DOM.
+- Each test automatically takes a **screenshot** as evidence (17 images in `screenshots/`).
+- Assertions check **specific text/state** (error messages, book names, the "Xác nhận mượn sách" dialog, rejection messages) instead of only checking the URL.
+
+---
+
+## 4. AI Usage Declaration
+
+The group used an AI tool (Warp Oz Agent) for assistance. Specifically:
+
+- **Tool**: Warp Oz Agent
+- **Scope of use**: Writing the code for 11 test cases (TC-02 → TC-12) and 6 bonus tests (TC-13 → TC-15 + 3 parametrize) based on the TC-01 sample pattern and the provided hints; quality review (removing unused imports, adding `.first` to avoid strict-mode, a strong oracle for TC-08, changing TC-13 to avoid overlap with B2); finding and verifying the CanvasKit crash fix via `--disable-gpu`.
+- **Verification**: Ran `pytest` against the real system and confirmed **18/18 PASSED**, generating all 17 evidence screenshots.
