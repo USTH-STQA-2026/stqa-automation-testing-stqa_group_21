@@ -10,7 +10,14 @@ Students must complete TC-02 and TC-03.
 """
 import os
 import pytest
-from conftest import enable_flutter_semantics, flutter_fill, flutter_click_button, wait_for_flutter, SCREENSHOT_DIR
+from conftest import (
+    enable_flutter_semantics,
+    flutter_fill,
+    flutter_click_button,
+    goto_app,
+    wait_for_flutter,
+    SCREENSHOT_DIR,
+)
 
 
 def test_login_success(page, test_config):
@@ -23,7 +30,7 @@ def test_login_success(page, test_config):
         See the [R], [I], [P], [R✓] comments below.
     """
     # [R] Reachability: Open the login page — reach the UI under test
-    page.goto(test_config["base_url"], wait_until="networkidle", timeout=60000)
+    goto_app(page, test_config["base_url"])
     enable_flutter_semantics(page)
 
     # [I] Infection: Enter valid data — trigger the login logic in the system
@@ -48,15 +55,15 @@ def test_login_success(page, test_config):
     ("ba.nguyen@email.com", "wrongpassword", "Mật khẩu không đúng"),
     ("", "", "Vui lòng nhập email và mật khẩu"),
     ("nobody@test.com", "anything", "Không tìm thấy thành viên"),
-])
-def test_login_fail_parametrize(page, test_config, email, password, expected_error):
+], ids=["wrong_password", "empty_fields", "unknown_email"])
+def test_login_fail_parametrize(page, test_config, request, email, password, expected_error):
     """B2: Data-driven login failure test
 
     📖 Data-Driven Testing (Ch.3 §3.3.2):
         Use @pytest.mark.parametrize to run the same scenario with multiple data sets.
     """
     # Arrange: Open the login page
-    page.goto(test_config["base_url"], wait_until="networkidle", timeout=60000)
+    goto_app(page, test_config["base_url"])
     enable_flutter_semantics(page)
 
     # Act: Enter the data and log in
@@ -71,6 +78,12 @@ def test_login_fail_parametrize(page, test_config, email, password, expected_err
 
     # Assert: Verify the correct error message
     sem_text = " ".join(page.locator("flt-semantics").all_text_contents())
+    page.screenshot(
+        path=os.path.join(
+            SCREENSHOT_DIR,
+            f"login_fail_parametrize_{request.node.callspec.id}.png",
+        )
+    )
     assert expected_error in sem_text, \
         f"Expected error '{expected_error}' not found in: {sem_text[:200]}"
 
@@ -88,7 +101,7 @@ def test_login_success_librarian(page, test_config):
         [R✓] Assert the displayed name "Nguyễn Thủ Thư" or the "Đăng xuất" button
     """
     # [R] Reachability
-    page.goto(test_config["base_url"], wait_until="networkidle", timeout=60000)
+    goto_app(page, test_config["base_url"])
     enable_flutter_semantics(page)
 
     # [I] Infection: Log in with the Librarian account
@@ -118,7 +131,7 @@ def test_login_fail_wrong_password(page, test_config):
         [R✓] Assert the error message "Mật khẩu không đúng"
     """
     # [R] Reachability: Open the login page
-    page.goto(test_config["base_url"], wait_until="networkidle", timeout=60000)
+    goto_app(page, test_config["base_url"])
     enable_flutter_semantics(page)
 
     # [I] Infection: Enter a correct email but a wrong password
@@ -146,7 +159,7 @@ def test_login_fail_empty_fields(page, test_config):
         [R✓] Assert the error message or that we remain on the login page
     """
     # [R] Reachability: Open the login page
-    page.goto(test_config["base_url"], wait_until="networkidle", timeout=60000)
+    goto_app(page, test_config["base_url"])
     enable_flutter_semantics(page)
 
     # [I] Infection: Enter nothing, click Login right away
@@ -160,3 +173,5 @@ def test_login_fail_empty_fields(page, test_config):
     sem_text = " ".join(page.locator("flt-semantics").all_text_contents())
     assert "Vui lòng nhập email và mật khẩu" in sem_text, \
         f"Expected error message 'Vui lòng nhập email và mật khẩu' not found in: {sem_text[:200]}"
+
+
