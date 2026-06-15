@@ -1,63 +1,118 @@
 """
-Logout & Language Tests — Library Book Borrowing System
+General UI tests - logout and bilingual behaviour.
 
-Students must complete ALL 2 test cases in this file.
-
-Hints:
-    - Use the login() helper to log in
-    - Logout button: 'flt-semantics[role="button"]:has-text("Đăng xuất")'
-    - Language switch EN button: 'flt-semantics[role="button"]:has-text("EN")'
-    - After logout: the page returns to login (has a "Đăng nhập" button and an "Email" input)
-    - After switching to EN: the text "Logout", "Borrow", "Search", "Library" may appear
+This file intentionally separates two bilingual checks:
+- TC-12 verifies that the main UI chrome switches to English.
+- TC-16 verifies full category localization and is marked xfail because
+  Manual TC-33 / BUG-08 proves the current system still shows Vietnamese
+  category names after switching to English.
 """
 import os
-from conftest import enable_flutter_semantics, login, SCREENSHOT_DIR
+
+import pytest
+from playwright.sync_api import Error as PlaywrightError
+
+from conftest import enable_flutter_semantics, login, wait_for_flutter, SCREENSHOT_DIR
+
+
+def _safe_screenshot(page, filename):
+    """Capture evidence without letting a transient CanvasKit screenshot timeout fail the oracle."""
+    try:
+        page.screenshot(path=os.path.join(SCREENSHOT_DIR, filename), timeout=10000)
+    except PlaywrightError:
+        pass
+
+
+def _switch_to_english(page, test_config):
+    """Log in, switch the application language to English, and return semantics text."""
+    login(page, test_config)
+
+    en_btn = page.locator('flt-semantics[role="button"]:has-text("EN")').first
+    en_btn.wait_for(state="attached", timeout=10000)
+    en_btn.click()
+
+    english_terms = ("Logout", "Borrow", "Return", "Library", "Search", "Books")
+    sem_text = ""
+    for _ in range(20):
+        page.wait_for_timeout(300)
+        enable_flutter_semantics(page)
+        sem_text = " ".join(page.locator("flt-semantics").all_text_contents())
+        if any(term in sem_text for term in english_terms):
+            return sem_text
+
+    return sem_text
 
 
 def test_logout(page, test_config):
-    """TC-11: Logout success
+    """TC-11: Logout success.
 
-    Description: Log in → click Logout → verify we return to the login page.
+    Log in, click Logout, and verify the login form is visible again.
     """
-    # Arrange: Log in
+    # Arrange
     login(page, test_config)
 
-    # Act: Click the "Đăng xuất" button
+    # Act
     logout_btn = page.locator('flt-semantics[role="button"]:has-text("Đăng xuất")').first
+    logout_btn.wait_for(state="attached", timeout=10000)
     logout_btn.click()
 
-    # Smart Wait: Wait to return to the login page
-    page.wait_for_timeout(3000)
+    # Assert
+    wait_for_flutter(page, text="Đăng nhập")
     enable_flutter_semantics(page)
-    page.screenshot(path=os.path.join(SCREENSHOT_DIR, "logout.png"))
+    _safe_screenshot(page, "logout.png")
 
-    # Assert: Verify we returned to the login page (has a "Đăng nhập" button or an Email field)
     sem_text = " ".join(page.locator("flt-semantics").all_text_contents())
-    has_login_page = "Đăng nhập" in sem_text or "Email" in sem_text or "Login" in sem_text
+    has_login_button = "Đăng nhập" in sem_text or "Login" in sem_text
     has_email_input = page.locator('input[aria-label="Email"]').count() > 0
-    assert has_login_page or has_email_input, \
-        f"Did not return to the login page after logging out. Sem text: {sem_text[:300]}"
+    assert has_login_button and has_email_input, (
+        "Did not return to the login page after logout. "
+        f"Sem text: {sem_text[:300]}"
+    )
 
 
 def test_switch_language_to_english(page, test_config):
-    """TC-12: Switch language to English
+    """TC-12: Switch language to English.
 
-    Description: Log in → click the "EN" button → verify the UI switches to English.
+    This required A2 test checks that the main navigation/UI chrome changes to
+    English. Manual TC-33 separately checks full category localization.
     """
-    # Arrange: Log in
-    login(page, test_config)
+    sem_text = _switch_to_english(page, test_config)
+    _safe_screenshot(page, "switch_language_en.png")
 
-    # Act: Click the "EN" button to switch language
-    en_btn = page.locator('flt-semantics[role="button"]:has-text("EN")').first
-    en_btn.click()
+    english_terms = ("Logout", "Borrow", "Return", "Library", "Search")
+    assert any(term in sem_text for term in english_terms), (
+        "The main UI did not switch to English after clicking EN. "
+        f"Sem text: {sem_text[:300]}"
+    )
 
-    # Smart Wait: Wait for the UI to switch language
-    page.wait_for_timeout(2000)
-    enable_flutter_semantics(page)
-    page.screenshot(path=os.path.join(SCREENSHOT_DIR, "switch_language_en.png"))
 
-    # Assert: Verify the UI is displayed in English
-    sem_text = " ".join(page.locator("flt-semantics").all_text_contents())
-    has_english = "Logout" in sem_text or "Borrow" in sem_text or "Library" in sem_text or "Search" in sem_text
-    assert has_english, \
-        f"The UI did not switch to English after clicking 'EN'. Sem text: {sem_text[:300]}"
+@pytest.mark.xfail(
+    reason="Known defect BUG-08 from Manual TC-33: category names remain Vietnamese after switching to English.",
+    strict=True,
+)
+def test_english_category_localization_bug08(page, test_config):
+    """TC-16 (Manual TC-33 alignment): category names should also localize.
+
+    Expected behaviour from SRS section 5: after switching to English, visible
+    book category names in Search/Filter should not remain Vietnamese.
+    Current behaviour: categories such as "Công nghệ", "Quản trị", and
+    "Kinh tế" remain visible, so this test is an expected failure until BUG-08
+    is fixed.
+    """
+    sem_text = _switch_to_english(page, test_config)
+    _safe_screenshot(page, "switch_language_category_bug08.png")
+
+    vietnamese_categories = (
+        "Công nghệ",
+        "Quản trị",
+        "Kinh tế",
+        "Kỹ năng mềm",
+        "Giáo dục",
+        "Văn học",
+    )
+    leaked_categories = [category for category in vietnamese_categories if category in sem_text]
+
+    assert not leaked_categories, (
+        "Vietnamese category names are still visible after switching to English: "
+        f"{', '.join(leaked_categories)}"
+    )
