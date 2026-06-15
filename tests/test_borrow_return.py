@@ -16,7 +16,7 @@ import pytest
 from playwright.sync_api import Error as PlaywrightError
 from conftest import (
     enable_flutter_semantics, flutter_fill, flutter_click_button,
-    login, wait_for_flutter, SCREENSHOT_DIR,
+    goto_app, login, wait_for_flutter, SCREENSHOT_DIR,
 )
 
 
@@ -27,7 +27,7 @@ def test_borrow_book(page, test_config):
     "Có sẵn" (available) book → click "Mượn sách này" → confirm → verify the borrow succeeded.
     """
     # Arrange: Log in with the dam.tran account (has not borrowed any book)
-    page.goto(test_config["base_url"], wait_until="networkidle", timeout=60000)
+    goto_app(page, test_config["base_url"])
     enable_flutter_semantics(page)
     flutter_fill(page, "Email", "dam.tran@email.com")
     flutter_fill(page, "Mật khẩu", "password123")
@@ -146,7 +146,7 @@ def test_borrow_book_suspended_member(page, test_config):
     Account: cu.le@email.com (MEM004 — Suspended)
     """
     # Arrange: Log in with the suspended account
-    page.goto(test_config["base_url"], wait_until="networkidle", timeout=60000)
+    goto_app(page, test_config["base_url"])
     enable_flutter_semantics(page)
     flutter_fill(page, "Email", "cu.le@email.com")
     flutter_fill(page, "Mật khẩu", "password123")
@@ -202,7 +202,7 @@ def test_borrow_book_expired_member(page, test_config):
     Account: binh.pham@email.com (MEM005 — Expired)
     """
     # Arrange: Log in with the expired account
-    page.goto(test_config["base_url"], wait_until="networkidle", timeout=60000)
+    goto_app(page, test_config["base_url"])
     enable_flutter_semantics(page)
     flutter_fill(page, "Email", "binh.pham@email.com")
     flutter_fill(page, "Mật khẩu", "password123")
@@ -249,3 +249,5 @@ def test_borrow_book_expired_member(page, test_config):
     # Assert: Verify a rejection message related to expiration
     assert found, \
         f"The expired member was still able to borrow (no rejection message). Sem text: {sem_text[:300]}"
+
+
