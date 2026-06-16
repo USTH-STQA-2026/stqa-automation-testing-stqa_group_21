@@ -225,7 +225,11 @@ CI sẽ thực hiện:
 | —     | Data-driven login fail (`@parametrize` — 3 bộ dữ liệu)          | `test_login.py`         | B2    | ✅ PASSED   |
 | TC-16 | Kiểm tra category list sau khi chuyển EN (*Manual TC-33 / BUG-08*) | `test_general.py`       | Alignment | ⚠️ XFAIL (known bug) |
 
-**Kết quả:** 18 PASSED + 1 XFAIL (known BUG-08), 0 FAILED. Xem chi tiết tại [REPORT.md](REPORT.md).
+**Kết quả:** pytest thu thập **19 test** → **18 PASSED + 1 XFAIL** (known BUG-08), 0 FAILED.
+
+> Lưu ý cách đếm: bảng trên có 16 TC đánh số + 1 dòng data-driven (B2). Dòng `@parametrize` tuy là 1 dòng nhưng chạy thành **3 test riêng** (3 bộ dữ liệu), còn TC-16 là **XFAIL** (không tính PASSED). Do đó: 15 TC đánh số PASS + 3 test parametrize = **18 PASSED**, cộng 1 XFAIL = **19 test**.
+
+Xem chi tiết tại [REPORT.md](REPORT.md).
 
 ---
 
