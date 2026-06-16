@@ -1,4 +1,4 @@
-"""
+﻿"""
 Borrow & Return Tests — Library Book Borrowing System
 
 Students must complete ALL 3 test cases in this file.
@@ -249,5 +249,3 @@ def test_borrow_book_expired_member(page, test_config):
     # Assert: Verify a rejection message related to expiration
     assert found, \
         f"The expired member was still able to borrow (no rejection message). Sem text: {sem_text[:300]}"
-
-
