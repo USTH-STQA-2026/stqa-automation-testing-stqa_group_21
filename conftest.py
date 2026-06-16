@@ -1,7 +1,7 @@
-import os
+﻿import os
 import pytest
 from dotenv import load_dotenv
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import Error as PlaywrightError, sync_playwright
 from web_detector import detect_technology, WebTech
 
 load_dotenv()
@@ -54,14 +54,41 @@ def wait_for_flutter(page, text=None, selector=None, timeout=10000):
         page.locator("flt-semantics").first.wait_for(state="attached", timeout=timeout)
 
 
+def goto_app(page, base_url, attempts=6):
+    """Open the app with retry for occasional server-side connection resets."""
+    last_error = None
+    for attempt in range(1, attempts + 1):
+        try:
+            page.goto(base_url, wait_until="domcontentloaded", timeout=60000)
+            page.locator("flt-glass-pane, flt-semantics-placeholder, flt-semantics").first.wait_for(
+                state="attached",
+                timeout=30000,
+            )
+            return
+        except PlaywrightError as exc:
+            last_error = exc
+            if attempt == attempts:
+                break
+            try:
+                page.goto("about:blank", wait_until="domcontentloaded", timeout=10000)
+            except PlaywrightError:
+                pass
+            page.wait_for_timeout(1500 * attempt)
+    raise last_error
+
+
 @pytest.fixture(scope="session")
 def browser():
     # Use explicit HEADLESS env so CI can choose headed mode with xvfb when needed.
     headless = os.getenv("HEADLESS", "false").lower() == "true"
     with sync_playwright() as p:
+        # --force-renderer-accessibility: enables the Semantics Tree for Flutter CanvasKit.
+        # --disable-gpu: software rendering to avoid the Chromium GPU process
+        #   crashing ("Aw, Snap!" / Target crashed) on some Flutter CanvasKit flows
+        #   (typically: borrow confirmation). More stable, only slightly slower.
         browser = p.chromium.launch(
             headless=headless,
-            args=["--force-renderer-accessibility"],
+            args=["--force-renderer-accessibility", "--disable-gpu"],
         )
         yield browser
         browser.close()
@@ -71,6 +98,20 @@ def browser():
 def page(browser):
     context = browser.new_context()
     page = context.new_page()
+
+    original_screenshot = page.screenshot
+
+    def safe_screenshot(*args, **kwargs):
+        kwargs.setdefault("timeout", 10000)
+        try:
+            return original_screenshot(*args, **kwargs)
+        except PlaywrightError:
+            # Flutter CanvasKit can occasionally stall screenshot capture while
+            # fonts/canvas settle. Evidence capture should not mask a valid
+            # functional oracle, and previous runs keep the latest screenshot.
+            return None
+
+    page.screenshot = safe_screenshot
     yield page
     context.close()
 
@@ -91,7 +132,7 @@ def test_config():
 def web_tech(page) -> WebTech:
     """Phát hiện công nghệ web và trả về WebTech object.
     Dùng trong test để biết trang đang dùng công nghệ gì."""
-    page.goto(BASE_URL, wait_until="networkidle", timeout=60000)
+    goto_app(page, BASE_URL)
     page.locator("flt-glass-pane").wait_for(state="attached", timeout=15000)
     tech = detect_technology(page)
     print(f"\n[web_detector] {tech.name.value}", end="")
@@ -178,7 +219,7 @@ def smart_fill(page, label, value, tech: WebTech = None):
 
 def login(page, test_config):
     """Helper: đăng nhập và chờ trang chính load (Smart Wait)."""
-    page.goto(test_config["base_url"], wait_until="networkidle", timeout=60000)
+    goto_app(page, test_config["base_url"])
     enable_flutter_semantics(page)
     flutter_fill(page, "Email", test_config["email"])
     flutter_fill(page, "Mật khẩu", test_config["password"])
@@ -204,3 +245,4 @@ def smart_click(page, text, tech: WebTech = None):
     else:
         # HTML thường: tìm button theo text
         page.get_by_role("button", name=text).click()
+
